@@ -64,7 +64,7 @@ resource "aws_waf_ipset" "ipset" {
 
   ip_set_descriptors {
     type  = "IPV4"
-    value = "94.103.129.0/24"
+    value = "94.103.129.132/32"
   }
 }
 
