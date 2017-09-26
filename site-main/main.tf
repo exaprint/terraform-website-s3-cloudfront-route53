@@ -103,7 +103,7 @@ resource "aws_waf_web_acl" "waf_acl" {
 ## Create a Cloudfront distribution for the static website
 ################################################################################################################
 resource "aws_cloudfront_distribution" "website_cdn" {
-  web_acl_id   = "${aws_waf_ipset.ipset.id}"
+  web_acl_id   = "${aws_waf_web_acl.waf_acl.id}"
   enabled      = true
   price_class  = "PriceClass_200"
   http_version = "http1.1"
