@@ -81,10 +81,56 @@ resource "aws_iam_policy_attachment" "site-deployer-attach-user-policy" {
   policy_arn = "${aws_iam_policy.site_deployer_policy.arn}"
 }
 
+
+################################################################################################################
+## WAF
+################################################################################################################
+
+resource "aws_waf_ipset" "ipset" {
+  name = "tfIPSet"
+
+  ip_set_descriptors {
+    type  = "IPV4"
+    value = "94.103.129.0/24"
+  }
+}
+
+resource "aws_waf_rule" "wafrule" {
+  depends_on  = ["aws_waf_ipset.ipset"]
+  name        = "tfWAFRule"
+  metric_name = "tfWAFRule"
+
+  predicates {
+    data_id = "${aws_waf_ipset.ipset.id}"
+    negated = false
+    type    = "IPMatch"
+  }
+}
+
+resource "aws_waf_web_acl" "waf_acl" {
+  depends_on  = ["aws_waf_ipset.ipset", "aws_waf_rule.wafrule"]
+  name        = "tfWebACL"
+  metric_name = "tfWebACL"
+
+  default_action {
+    type = "ALLOW"
+  }
+
+  rules {
+    action {
+      type = "BLOCK"
+    }
+
+    priority = 1
+    rule_id  = "${aws_waf_rule.wafrule.id}"
+  }
+}
+
 ################################################################################################################
 ## Create a Cloudfront distribution for the static website
 ################################################################################################################
 resource "aws_cloudfront_distribution" "website_cdn" {
+  web_acl_id   = "${aws_waf_ipset.ipset.id}"
   enabled      = true
   price_class  = "PriceClass_200"
   http_version = "http1.1"
