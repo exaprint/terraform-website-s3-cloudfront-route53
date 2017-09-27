@@ -44,9 +44,6 @@ variable "forward-query-string" {
   description = "Forward the query string to the origin"
   default     = false
 }
-variable "authorized" {
-  default = false
-}
 
 variable "filter_ip" {
   default = false
