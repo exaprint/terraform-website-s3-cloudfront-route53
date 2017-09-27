@@ -65,7 +65,7 @@ resource "aws_waf_ipset" "ipset" {
 
   ip_set_descriptors {
     type  = "IPV4"
-    value = "${var.authorized}"
+    value = "${var.authorized_ip}"
   }
 }
 
