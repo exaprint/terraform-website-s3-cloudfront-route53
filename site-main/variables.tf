@@ -17,7 +17,7 @@ variable bucket_name {
 
 variable duplicate-content-penalty-secret {}
 variable deployer {
-  default= ""
+  default = ""
 }
 variable acm-certificate-arn {}
 
@@ -30,9 +30,9 @@ variable not-found-response-path {
 }
 
 variable "tags" {
-  type        = "map"
+  type = "map"
   description = "Optional Tags"
-  default     = {}
+  default = {}
 }
 
 variable "trusted_signers" {
@@ -43,4 +43,15 @@ variable "trusted_signers" {
 variable "forward-query-string" {
   description = "Forward the query string to the origin"
   default     = false
+}
+variable "authorized" {
+  default = false
+}
+
+variable "filter_ip" {
+  default = false
+}
+
+variable "authorized_ip" {
+  default = ""
 }

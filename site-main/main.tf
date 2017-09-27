@@ -60,28 +60,31 @@ resource "aws_s3_bucket" "website_bucket" {
 ################################################################################################################
 
 resource "aws_waf_ipset" "ipset" {
+  count = "${var.filter_ip}"
   name = "tfIPSet"
 
   ip_set_descriptors {
     type  = "IPV4"
-    value = "94.103.129.132/32"
+    value = "${var.authorized}"
   }
 }
 
 resource "aws_waf_rule" "wafrule" {
-  depends_on  = ["aws_waf_ipset.ipset"]
+  count = "${var.filter_ip}"
+  depends_on  = ["aws_waf_ipset.ipset.0"]
   name        = "tfWAFRule"
   metric_name = "tfWAFRule"
 
   predicates {
-    data_id = "${aws_waf_ipset.ipset.id}"
+    data_id = "${aws_waf_ipset.ipset.0.id}"
     negated = false
     type    = "IPMatch"
   }
 }
 
 resource "aws_waf_web_acl" "waf_acl" {
-  depends_on  = ["aws_waf_ipset.ipset", "aws_waf_rule.wafrule"]
+  count = "${var.filter_ip}"
+  depends_on  = ["aws_waf_ipset.ipset.0", "aws_waf_rule.wafrule.0"]
   name        = "tfWebACL"
   metric_name = "tfWebACL"
 
@@ -95,7 +98,7 @@ resource "aws_waf_web_acl" "waf_acl" {
     }
 
     priority = 1
-    rule_id  = "${aws_waf_rule.wafrule.id}"
+    rule_id  = "${aws_waf_rule.wafrule.0.id}"
   }
 }
 
@@ -103,7 +106,7 @@ resource "aws_waf_web_acl" "waf_acl" {
 ## Create a Cloudfront distribution for the static website
 ################################################################################################################
 resource "aws_cloudfront_distribution" "website_cdn" {
-  web_acl_id   = "${aws_waf_web_acl.waf_acl.id}"
+  web_acl_id   = "${aws_waf_web_acl.waf_acl.0.id}"
   enabled      = true
   price_class  = "PriceClass_200"
   http_version = "http1.1"
