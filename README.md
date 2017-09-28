@@ -101,9 +101,12 @@ See the [Terraform Modules documentation](https://www.terraform.io/docs/modules/
   in the `us-east-1` region.
 * `not-found-response-path`: response path for the file that should be served on 404. Default to `/404.html`,
   but can be e.x. `/index.html` for single page applications.
+* `trusted_signers`: (Optional) List of AWS account IDs that are allowed to create signed URLs for this
+  distribution. May contain `self` to indicate the account where the distribution is created in.
 * `project`: (Optional) the name of a project this site belongs to. Default value = `noproject`
 * `environment`: (Optional) the environment this site belongs to. Default value = `default`
 * `tags`: (Optional) Additional key/value pairs to set as tags.
+* `forward-query-string`:  (Optional) Forward the query string to the origin. Default value = `false`
 
 ### Outputs
 
@@ -113,6 +116,8 @@ See the [Terraform Modules documentation](https://www.terraform.io/docs/modules/
   later on to create a Route53 `ALIAS` record.
 * `website_bucket_id`: The website bucket id
 * `website_bucket_arn`: The website bucket arn
+* `website_cdn_id`: The CDN ID of the Cloudfront distribution.
+* `website_cdn_arn`: The ARN of the CDN
 
 ## Setting up the redirect site
 
