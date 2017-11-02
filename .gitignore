@@ -4,3 +4,5 @@
 # Compiled files
 *.tfstate
 *.tfstate.backup
+
+\.idea/

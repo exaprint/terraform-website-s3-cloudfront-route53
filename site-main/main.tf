@@ -56,35 +56,57 @@ resource "aws_s3_bucket" "website_bucket" {
 }
 
 ################################################################################################################
-## Configure the credentials and access to the bucket for a deployment user
+## WAF
 ################################################################################################################
-data "template_file" "deployer_role_policy_file" {
-  template = "${file("${path.module}/deployer_role_policy.json")}"
 
-  vars {
-    bucket = "${var.bucket_name}"
+resource "aws_waf_ipset" "ipset" {
+  count = "${var.filter_ip}"
+  name = "tfIPSet"
+
+  ip_set_descriptors {
+    type  = "IPV4"
+    value = "${var.authorized_ip}"
   }
 }
 
-resource "aws_iam_policy" "site_deployer_policy" {
-  provider    = "aws.${var.region}"
-  name        = "${var.bucket_name}.deployer"
-  path        = "/"
-  description = "Policy allowing to publish a new version of the website to the S3 bucket"
-  policy      = "${data.template_file.deployer_role_policy_file.rendered}"
+resource "aws_waf_rule" "wafrule" {
+  count = "${var.filter_ip}"
+  depends_on  = ["aws_waf_ipset.ipset"]
+  name        = "tfWAFRule"
+  metric_name = "tfWAFRule"
+
+  predicates {
+    data_id = "${aws_waf_ipset.ipset.0.id}"
+    negated = false
+    type    = "IPMatch"
+  }
 }
 
-resource "aws_iam_policy_attachment" "site-deployer-attach-user-policy" {
-  provider   = "aws.${var.region}"
-  name       = "${var.bucket_name}-deployer-policy-attachment"
-  users      = ["${var.deployer}"]
-  policy_arn = "${aws_iam_policy.site_deployer_policy.arn}"
+resource "aws_waf_web_acl" "waf_acl" {
+  count = "${var.filter_ip}"
+  depends_on  = ["aws_waf_ipset.ipset", "aws_waf_rule.wafrule"]
+  name        = "tfWebACL"
+  metric_name = "tfWebACL"
+
+  default_action {
+    type = "BLOCK"
+  }
+
+  rules {
+    action {
+      type = "ALLOW"
+    }
+
+    priority = 1
+    rule_id  = "${aws_waf_rule.wafrule.0.id}"
+  }
 }
 
 ################################################################################################################
 ## Create a Cloudfront distribution for the static website
 ################################################################################################################
 resource "aws_cloudfront_distribution" "website_cdn" {
+  web_acl_id   = "${aws_waf_web_acl.waf_acl.0.id}"
   enabled      = true
   price_class  = "PriceClass_200"
   http_version = "http1.1"
