@@ -16,7 +16,9 @@ variable bucket_name {
 }
 
 variable duplicate-content-penalty-secret {}
-variable deployer {}
+variable deployer {
+  default = ""
+}
 variable acm-certificate-arn {}
 
 variable routing_rules {
